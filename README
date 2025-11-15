@@ -1,0 +1,204 @@
+Sphinx 是一个基于 Python 的文档生成工具。
+最早由 Python 官方社区创建，用于维护 Python 官方文档
+现在被广泛用于各种项目（包括 NumPy、Pandas、PyTorch）。
+
+NumPy 风格（很多科学库用这个格式） 此外还有谷歌风格（Google Style）
+下面是一个简单的 NumPy 风格 docstring 示例：
+def add(a, b):
+    """
+    计算两个整数的和。
+
+    Parameters
+    ----------
+    a : int
+        第一个整数。
+    b : int
+        第二个整数。
+
+    Returns
+    -------
+    int
+        两数之和。
+    """
+    return a + b
+
+例子：生成问候语的函数
+def generate_greeting(personal, family, title=None, polite=True):
+    """
+    Generate a greeting string for a person.
+
+    Parameters
+    ----------
+    personal : str
+        A given name, such as Will or Jean-Luc
+    family : str
+        A family name, such as Riker or Picard
+    title : str
+        An optional title, such as Captain or Reverend
+    polite : bool
+        True for a formal greeting, False for informal.
+
+    Returns
+    -------
+    string
+        An appropriate greeting.
+    """
+    if polite:
+        return f"Good day, {title} {family}."
+    else:
+        return f"Hi {personal}!"
+
+老师提到：
+“我们使用 NumPy 风格的 docstring 并启用 numpydoc Sphinx 扩展。”
+意思是： Sphinx 默认不识别这种格式；
+你需要在 conf.py（Sphinx 配置文件）里加上：
+extensions = [
+    'numpydoc',
+]
+这样它才能正确解析 Parameters、Returns 这样的段落标题。
+
+🧩 二、命令分步解释
+✅ Step 1：安装 Sphinx
+pip install sphinx
+安装 Sphinx 工具（建议使用虚拟环境）。
+如果要支持 NumPy 风格的文档，还要安装：
+pip install numpydoc
+
+✅ Step 2：初始化项目
+sphinx-quickstart
+这条命令是 Sphinx 的“快速启动向导”，会问你一系列问题，用来自动生成配置。
+
+✅ Step 3：回答命令行中的问题
+Sphinx 会一项一项地问你：
+问题	含义	建议答案
+Separate source and build directories (y/n)	是否将源码和生成文件分开	输入 y（推荐）
+Project name	                            项目名	    比如 Greetings
+Author name(s)	                            作者	    你的名字
+Project release	                            版本号	    例如 0.1
+Project language	                        文档语言	 en 或 zh_CN
+Do you want to use the epub builder (y/n)	是否生成 epub 格式（电子书）文档，输入 n 就好
+autodoc, doctest, intersphinx, todo, coverage, 
+mathjax, ifconfig, viewcode, githubpages	是否启用这些扩展（一般可以按回车跳过，或之后再改）
+
+🧱 运行完之后，它会帮你自动创建一个目录结构：
+比如你输入了 y 分开源代码和构建目录，会生成：
+docs/
+├── build/         ← 存放生成后的 HTML、PDF 等
+├── source/        ← 存放文档源文件
+│   ├── conf.py    ← 配置文件（启用 numpydoc 等扩展）
+│   ├── index.rst  ← 文档首页
+│   └── _static/   ← 图片、样式文件
+└── Makefile       ← 构建命令
+
+✅ Step 4：生成的文件说明
+Sphinx 会输出：
+Creating file ./conf.py.
+Creating file ./index.rst.
+Creating file ./Makefile.
+Creating file ./make.bat.
+这些文件的含义如下：
+文件	              作用 
+conf.py	            🌟最重要的配置文件（告诉 Sphinx 去哪里找代码、用哪些扩展）
+index.rst	         你的“文档主页”，后面你会在这里写目录结构
+Makefile / make.bat	 方便你在命令行里输入 make html 来生成网页
+_build/	Sphinx       生成的输出文件会放在这里（如 HTML）
+
+🧠 三、关键文件 conf.py 的作用
+Sphinx 的核心配置文件是：conf.py
+它用 Python 写成，因为 Sphinx 本身是 Python 程序。
+里面包含项目的所有设置，比如：
+🔹1. 告诉 Sphinx 哪里能找到你的 Python 模块
+import sys
+import os
+sys.path.insert(0, os.path.abspath('.'))
+这两行的意思是：
+把当前目录（你的 Python 文件所在目录）加入到 Python 搜索路径中。
+否则 Sphinx 找不到你的模块，就没法自动生成文档。
+
+🔹2. 启用文档扩展功能
+extensions = [
+    'sphinx.ext.autodoc',   # 自动从代码 docstring 提取文档
+    'sphinx.ext.coverage',  # 检查函数是否都有文档
+    'sphinx.ext.mathjax',   # 支持数学公式
+    'sphinx.ext.viewcode',  # 在文档中添加“查看源代码”链接
+    'numpydoc'              # 支持 NumPy 风格 docstring
+]
+这些扩展相当于“插件”：
+autodoc → 自动从你的 Python 文件提取 docstring
+numpydoc → 识别老师教的那种 Parameters / Returns 风格
+viewcode → 可以在网页里点击查看源代码
+
+🔹3. 主题和显示样式
+html_theme = 'alabaster'
+网页外观主题，可以换成 'sphinx_rtd_theme'（更常见的风格，ReadTheDocs风格）。
+
+🔹4. 项目信息
+project = 'Greetings'
+copyright = '2014, James Hetherington'
+version = '0.1'
+release = '0.1'
+这些信息会显示在文档页脚。
+
+
+🧱 四、之后怎么生成网页文档？
+一旦你有了：
+conf.py
+index.rst
+以及一个 Python 模块（比如 greeter.py）
+你就可以运行：
+make html
+然后：输出会保存在 _build/html/index.html
+打开它，你就能看到你的 docstring 被变成了结构化网页✨
+
+🧩 一句话总结：
+doctest 是一个 Python 内置模块，用来自动测试文档（docstring）中的示例代码是否正确运行、输出是否匹配。
+
+🧠 场景背景：
+我们写的函数 docstring 里经常放示例代码，例如：
+def greet(personal, family, title="", polite=False):
+    """
+    Examples
+    --------
+    >>> greet("Terry", "Jones")
+    'Hey, Terry Jones.'
+    """
+这是一种“教学式”的文档写法 —— 用户看了文档就知道函数怎么用。
+但是问题来了：
+👉 如果你改了代码逻辑，却忘了改文档里的示例怎么办？
+👉 那你的文档就“说谎”了 😅。
+于是 Python 提供了 doctest 模块，自动帮你检测这些例子是不是真的跑得通。
+
+🔍 看你的示例：
+def greet(personal, family, title="", polite=False):
+    """ Generate a greeting string for a person.
+
+    Examples
+    --------
+    >>> from greetings.greeter import greet
+    >>> greet("Terry", "Jones")
+    'Hey, Terry Jones.
+    """
+注意！这行少了一个引号 'Hey, Terry Jones.
+正确的写法应该是 'Hey, Terry Jones.'
+
+于是当你运行：
+python -m doctest greetings/greetings/greeter.py
+它就会输出：
+**********************************************************************
+File ".../greeter.py", line 23, in greeter.greet
+Failed example:
+    greet("Terry", "Jones")
+Expected:
+    'Hey, Terry Jones.
+Got:
+    'Hey, Terry Jones.'
+**********************************************************************
+***Test Failed*** 1 failures.
+这说明 doctest 在帮你指出文档里“错误的输出示例”！
+
+🧰 另外一种用法（用 pytest 来跑 doctest）：
+你可以直接用 pytest 来运行所有模块里的 doctest：
+pytest --doctest-modules
+这会自动检查：
+所有 .py 文件的 docstring 中的示例；
+并且报告测试结果（成功/失败）。
